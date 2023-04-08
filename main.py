@@ -1,5 +1,5 @@
 import telebot
-import db
+import db_build_buddy
 
 # Установка бота
 bot = telebot.TeleBot("token")
