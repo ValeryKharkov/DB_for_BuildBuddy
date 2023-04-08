@@ -1,4 +1,5 @@
 # Загрузка библиотеки
+import sqlite3
 import sqlite3 as sl
 
 # Создание и соединение с базой данных
@@ -8,26 +9,27 @@ cur = con.cursor()
 # Создание таблиц базы данных
 cur.execute(""" CREATE TABLE IF NOT EXISTS objects(
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
-        cadastral_number INTEGER UNIQUE,
+        --cadastral_number INTEGER UNIQUE,
         addres TEXT UNIQUE,
-        problem_object INTEGER NOT NULL,
-        document TEXT UNIQUE,
-        foto TEXT UNIQUE,
-        status INTEGER,
-        tracking INTEGER,
-        priority INTEGER,
-        deadline TEXT);
+        --problem_object INTEGER NOT NULL,
+        document BLOB UNIQUE,
+        foto BLOB UNIQUE
+        --status INTEGER,
+        --tracking INTEGER,
+        --priority INTEGER,
+        --deadline TEXT
+        );
 """)
 con.commit()
 
 # Добавление данных в таблицу (хардкод)
-data = [
-    (1, 47141203001814, 'Кондратьевский просп., 44', 1, '...', '...', 0, 1, 1, '23/10/2025'),
-    (2, 47141203001815, 'Полюстровский просп., 18', 0, '...', '...', 1, 1, 0, '16/08/2024')
-]
-
-cur.executemany("""INSERT OR IGNORE INTO objects VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);""", data)
-con.commit()
+# data = [
+#     ('Кондратьевский просп., 44', '...', '...'),
+#     ('Полюстровский просп., 18', '...', '...')
+# ]
+#
+# cur.executemany("""INSERT OR IGNORE INTO objects VALUES (?, ?, ?, ?);""", data)
+# con.commit()
 
 
 # Добавление данных через функцию
@@ -70,6 +72,43 @@ def add_object(id: int):
 def view_object():
     pass
 
+
+# Функция: вставка изображений и файлов
+def convert_to_binary_data(filename):
+    # Преобразование данных в двоичный формат
+    with open(filename, 'rb') as file:
+        blob_data = file.read()
+    return blob_data
+
+
+def insert_blob(arg_document, arg_foto):
+    try:
+        sqlite_connection = sl.connect('db_build_buddy.db')
+        cursor = sqlite_connection.cursor()
+        print("Подключен к SQLite")
+
+        sqlite_insert_blob_query = """INSERT INTO objects
+                                  (document, photo) VALUES (?, ?)"""
+
+        object_photo = convert_to_binary_data(arg_foto)
+        object_document = convert_to_binary_data(arg_document)
+        # Преобразование данных в формат кортежа
+        data_tuple = (object_photo, object_document)
+        cursor.execute(sqlite_insert_blob_query, data_tuple)
+        sqlite_connection.commit()
+        print("Изображение и файл успешно вставлены как BLOB в таблицу")
+        cursor.close()
+
+    except sqlite3.Error as error:
+        print("Ошибка при работе с SQLite", error)
+    finally:
+        if sqlite_connection:
+            sqlite_connection.close()
+            print("Соединение с SQLite закрыто")
+
+
+insert_blob('document.pdf', 'photo.jpg')
+# insert_blob(2, "David", "david.jpg", "david_resume.docx")
 
 # Вывод данных для тестирования
 cur.execute("""SELECT * FROM objects""")
