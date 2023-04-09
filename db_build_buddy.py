@@ -1,10 +1,11 @@
 # Загрузка библиотеки
 import sqlite3
-import sqlite3 as sl
 
 # Создание и соединение с базой данных
-con = sl.connect('db_build_buddy.db')
+con = sqlite3.connect('db_build_buddy.db')
 cur = con.cursor()
+con.commit()
+
 
 # Создание таблиц базы данных
 cur.execute(""" CREATE TABLE IF NOT EXISTS objects(
@@ -13,7 +14,7 @@ cur.execute(""" CREATE TABLE IF NOT EXISTS objects(
         addres TEXT UNIQUE,
         --problem_object INTEGER NOT NULL,
         document BLOB UNIQUE,
-        foto BLOB UNIQUE
+        photo BLOB UNIQUE
         --status INTEGER,
         --tracking INTEGER,
         --priority INTEGER,
@@ -32,13 +33,11 @@ con.commit()
 # con.commit()
 
 
-# Добавление данных через функцию
-# def db_table_val(id: int, cadastral_number: int, addres: str, problem_object: int, document: str, foto: str,
-#                  status: int, tracking: int, priority: str, deadline: str):
-#     cur.execute("""INSERT INTO objects (
-#     id, cadastral_number, addres, problem_object, document_link, foto_link, status, tracking, priority, deadline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-#         (id, cadastral_number, addres, problem_object, document, foto, status, tracking, priority, deadline))
-# con.commit()
+# Добавление данных через функцию def db_table_val(id: int, cadastral_number: int, addres: str, problem_object: int,
+# document: str, foto: str, status: int, tracking: int, priority: str, deadline: str): cur.execute("""INSERT INTO
+# objects ( id, cadastral_number, addres, problem_object, document_link, foto_link, status, tracking, priority,
+# deadline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (id, cadastral_number, addres, problem_object, document, foto,
+# status, tracking, priority, deadline)) con.commit()
 
 # Функция: поиск объекта
 def search_object(text, search_type):
@@ -58,12 +57,12 @@ def search_object(text, search_type):
 
 
 # Функция: добавить объект
-def add_object(id: int):
-    con = sl.connect('db_build_buddy.db')
+def add_object(arg_addres: int):
+    con = sqlite3.connect('db_build_buddy.db')
     cur = con.cursor()
     data = []
-    data.append(id)
-    cur.execute("""INSERT INTO shop VALUES(?)""", data)
+    data.append(arg_addres)
+    cur.execute("""INSERT OR IGNORE INTO objects(addres) VALUES(?)""", data)
     con.commit()
     cur.close()
 
@@ -80,10 +79,10 @@ def convert_to_binary_data(filename):
         blob_data = file.read()
     return blob_data
 
-
+# Функция: добавить данные типа BLOB
 def insert_blob(arg_document, arg_foto):
     try:
-        sqlite_connection = sl.connect('db_build_buddy.db')
+        sqlite_connection = sqlite3.connect('db_build_buddy.db')
         cursor = sqlite_connection.cursor()
         print("Подключен к SQLite")
 
@@ -100,17 +99,15 @@ def insert_blob(arg_document, arg_foto):
         cursor.close()
 
     except sqlite3.Error as error:
-        print("Ошибка при работе с SQLite", error)
+        print("Ошибка при работе с SQLite:", error)
     finally:
         if sqlite_connection:
             sqlite_connection.close()
             print("Соединение с SQLite закрыто")
 
 
+# Тестирование: добавление blob файлов (хардкод)
 insert_blob('document.pdf', 'photo.jpg')
 # insert_blob(2, "David", "david.jpg", "david_resume.docx")
 
-# Вывод данных для тестирования
-cur.execute("""SELECT * FROM objects""")
-result = cur.fetchall()
-print(result)
+
