@@ -6,7 +6,6 @@ con = sqlite3.connect('db_build_buddy.db')
 cur = con.cursor()
 con.commit()
 
-
 # Создание таблиц базы данных
 cur.execute(""" CREATE TABLE IF NOT EXISTS objects(
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
@@ -22,6 +21,7 @@ cur.execute(""" CREATE TABLE IF NOT EXISTS objects(
         );
 """)
 con.commit()
+
 
 # Добавление данных в таблицу (хардкод)
 # data = [
@@ -72,15 +72,17 @@ def view_object():
     pass
 
 
-# Функция: вставка изображений и файлов
+# Функция: конвертация изображений и файлов в бинарные данные
 def convert_to_binary_data(filename):
     # Преобразование данных в двоичный формат
     with open(filename, 'rb') as file:
         blob_data = file.read()
     return blob_data
 
+
 # Функция: добавить данные типа BLOB
 def insert_blob(arg_document, arg_foto):
+    global sqlite_connection
     try:
         sqlite_connection = sqlite3.connect('db_build_buddy.db')
         cursor = sqlite_connection.cursor()
@@ -107,7 +109,5 @@ def insert_blob(arg_document, arg_foto):
 
 
 # Тестирование: добавление blob файлов (хардкод)
-insert_blob('document.pdf', 'photo.jpg')
-# insert_blob(2, "David", "david.jpg", "david_resume.docx")
-
-
+insert_blob('blob_files/document_1.docx', 'blob_files/photo_1.jpg')
+insert_blob('blob_files/document_2.docx', 'blob_files/photo_2.jpg')
