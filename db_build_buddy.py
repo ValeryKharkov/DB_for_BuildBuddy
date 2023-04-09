@@ -9,15 +9,15 @@ con.commit()
 # Создание таблиц базы данных
 cur.execute(""" CREATE TABLE IF NOT EXISTS objects(
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
-        --cadastral_number INTEGER UNIQUE,
+        cadastral_number INTEGER UNIQUE,
         addres TEXT UNIQUE,
-        --problem_object INTEGER NOT NULL,
+        status_problem INTEGER NOT NULL,
         document BLOB UNIQUE,
-        photo BLOB UNIQUE
-        --status INTEGER,
-        --tracking INTEGER,
-        --priority INTEGER,
-        --deadline TEXT
+        photo BLOB UNIQUE,
+        status_execution INTEGER,
+        tracking INTEGER,
+        priority INTEGER,
+        deadline TEXT
         );
 """)
 con.commit()
@@ -80,24 +80,27 @@ def convert_to_binary_data(filename):
     return blob_data
 
 
-# Функция: добавить данные типа BLOB
-def insert_blob(arg_document, arg_foto):
+# Функция: добавить данные в таблицу
+def insert_data_to_the_table(arg_cadastral_number, arg_addres, arg_status_problem, arg_document, arg_photo,
+                             arg_status_execution, arg_tracking, arg_priority, arg_deadline):
     global sqlite_connection
     try:
         sqlite_connection = sqlite3.connect('db_build_buddy.db')
         cursor = sqlite_connection.cursor()
         print("Подключен к SQLite")
 
-        sqlite_insert_blob_query = """INSERT INTO objects
-                                  (document, photo) VALUES (?, ?)"""
+        sqlite_insert_query = """INSERT OR IGNORE INTO objects
+                                  (cadastral_number, addres, status_problem, document, photo,
+                             status_execution, tracking, priority, deadline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"""
 
-        object_photo = convert_to_binary_data(arg_foto)
-        object_document = convert_to_binary_data(arg_document)
+        document_mod = convert_to_binary_data(arg_document)
+        photo_mod = convert_to_binary_data(arg_photo)
         # Преобразование данных в формат кортежа
-        data_tuple = (object_photo, object_document)
-        cursor.execute(sqlite_insert_blob_query, data_tuple)
+        data_tuple = (arg_cadastral_number, arg_addres, arg_status_problem, document_mod, photo_mod,
+                      arg_status_execution, arg_tracking, arg_priority, arg_deadline)
+        cursor.execute(sqlite_insert_query, data_tuple)
         sqlite_connection.commit()
-        print("Изображение и файл успешно вставлены как BLOB в таблицу")
+        print("Данные успешно вставлены в таблицу")
         cursor.close()
 
     except sqlite3.Error as error:
@@ -109,5 +112,7 @@ def insert_blob(arg_document, arg_foto):
 
 
 # Тестирование: добавление blob файлов (хардкод)
-insert_blob('blob_files/document_1.docx', 'blob_files/photo_1.jpg')
-insert_blob('blob_files/document_2.docx', 'blob_files/photo_2.jpg')
+insert_data_to_the_table(47141203001814, 'Проезд Смольный, д. 1, лит. Б.', 1, 'blob_files/document_1.docx',
+                         'blob_files/photo_1.jpg', 1, 1, 1, '24.05.2023')
+insert_data_to_the_table(84141203001815, 'Лахтинский проспект, 2 к3 ст1', 0, 'blob_files/document_2.docx',
+                         'blob_files/photo_2.jpg', 0, 0, 0, '06.10.2024')
